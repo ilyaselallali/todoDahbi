@@ -25,22 +25,25 @@ export class ManageTodoDialogComponent implements OnInit {
   validate() {
     if (!this.content) {
       this.hasError = true;
-      this.errorMessage = "Cannot submit the empty content.";
+      this.errorMessage = 'Cannot submit the empty content.';
+      console.log('cannot submit');
     }
   }
 
   saveTodo() {
     this.validate();
+
+    console.log('submitted');
     if (!this.hasError) {
       const newTodo = new Todo();
       newTodo.content = this.content;
-      this.http.post("http://localhost:4000/todo", newTodo).subscribe(
+      this.http.post('http://localhost:3000/todos', newTodo).subscribe(
         (resp: any) => {
           console.log(resp);
           this.dialogRef.close();
         },
         err => console.log(err)
-      )
+      );
     }
   }
 

@@ -1,81 +1,67 @@
-const express = require("express");
-const server = express();
-const cors = require('cors')
-const body_parser = require("body-parser");
-const ObjectId = require('mongodb').ObjectID;
-require('dotenv').config();
-server.use(body_parser.json());
+const express = require('express');
+const MongoClient = require('mongodb').MongoClient;
+const cors = require('cors');
 
-const port = 4000;
-server.use(cors());
 
-// db setup
-const db = require('./db-connection');
-const dbName = process.env.DB_NAME;
-const collectionName = "todos";
-// db setup
+const app = express();
+app.use(cors());
 
-db.initialize(dbName, collectionName, function(dbCollection) {
+const url = 'mongodb://localhost:27017';
+const dbName = 'todos';
 
-    server.post("/todo", (request, response) => {
-      const item = request.body;
-      dbCollection.insertOne(item, (error, result) => {
-          if (error) throw error;
-          dbCollection.find().toArray((_error, _result) => {
-              if (_error) throw _error;
-              response.json(_result);
-          });
-      });
-    });
-  
-    server.get("/todo/:id", (request, response) => {
-      const id = request.params.id;
-  
-      dbCollection.findOne({ _id: ObjectId(id) }, (error, result) => {
-          if (error) throw error;
-          response.json(result);
-      });
-    });
-  
-    server.get("/todos", (request, response) => {
-      dbCollection.find().toArray((error, result) => {
-          if (error) throw error;
-          response.json(result);
-      });
-    });
-  
-    server.put("/todo/:id", (request, response) => {
-      const itemId = request.params.id;
-    //   const item = request.body;
-      dbCollection.updateOne(
-          { _id: ObjectId(itemId) },
-          { $set: {content: request.body.content, isCompleted: request.body.isCompleted} },
-          (error, result) => {
-          if (error) throw error;
-          dbCollection.findOne({ _id: ObjectId(itemId) }, (error, result) => {
-              if (error) throw error;
-              response.json(result);
-          })
-      });
-    });
-  
-    server.delete("/todo/:id", (request, response) => {
-        const itemId = request.params.id;
-    
-        dbCollection.deleteOne({ _id: ObjectId(itemId) }, function(error, result) {
-            if (error) throw error;
-            dbCollection.find().toArray(function(_error, _result) {
-                if (_error) throw _error;
-                response.json(_result);
-            });
-        });
-    });
-  
-  }, function(err) {
-    throw (err);
+MongoClient.connect(url, { useNewUrlParser: true }, (err, client) => {
+  if (err) {
+    console.log('Error connecting to MongoDB:', err);
+    return;
   }
-);
 
-server.listen(port, () => {
-    console.log(`Server listening at ${port}`);
+  console.log('Connected to MongoDB server');
+
+  const db = client.db(dbName);
+  const todosCollection = db.collection('todos');
+
+  // Ajouter une tâche à faire
+  app.post('/todos', (req, res) => {
+    const newTodo = req.body;
+
+    todosCollection.insertOne(newTodo, (err, result) => {
+      if (err) {
+        console.log('Error adding todo:', err);
+        res.status(500).send('Error adding todo');
+        return;
+      }
+
+      res.send(result.ops[0]);
+    });
+  });
+
+  // Récupérer toutes les tâches à faire
+  app.get('/todos', (req, res) => {
+    todosCollection.find().toArray((err, docs) => {
+      if (err) {
+        console.log('Error getting todos:', err);
+        res.status(500).send('Error getting todos');
+        return;
+      }
+
+      res.send(docs);
+    });
+  });
+  app.delete('/todos/:id', (req, res) => {
+    const id = req.params.id;
+
+    todosCollection.deleteOne({ _id: ObjectId(id) }, (err, result) => {
+      if (err) {
+        console.log('Error deleting todo:', err);
+        res.status(500).send('Error deleting todo');
+        return;
+      }
+
+      res.send(result);
+    });
+  });
+
+  app.listen(3000, () => {
+    console.log('Server listening on port 3000');
+  });
 });

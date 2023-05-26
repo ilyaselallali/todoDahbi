@@ -1,10 +1,10 @@
-<mat-card>
+<mat-card xmlns="http://www.w3.org/1999/html">
     <mat-checkbox fxFlex [(ngModel)]="todo.isCompleted" (ngModelChange)="updateTodoStatus(todo);">
         <span [ngClass]="{ 'text-line-through': todo.isCompleted}">
             {{todo.content}}
         </span>
     </mat-checkbox>
-    <span (click)="deleteTodo(todo);">
+    <button (click)="deleteTodo(todo);">
         <i class="material-icons">delete</i>
-    </span>
+    </button>
 </mat-card>

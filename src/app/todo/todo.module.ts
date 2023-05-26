@@ -10,10 +10,8 @@ import { ManageTodoDialogComponent } from './manage-todo-dialog/manage-todo-dial
 
 @NgModule({
   declarations: [
-    TodoListComponent, 
-    TodoItemComponent,
-    TodoContainerComponent, 
-    ManageTodoDialogComponent
+    TodoListComponent, TodoItemComponent,
+    TodoContainerComponent, ManageTodoDialogComponent
   ],
   imports: [
     CommonModule,
